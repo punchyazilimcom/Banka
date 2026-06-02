@@ -6,8 +6,8 @@ import {
   type ClassificationOverride,
   classifyCounterparty,
   parseTurkishAmount,
+  createTxId,
 } from '@gtt/shared';
-import { createHash } from 'node:crypto';
 
 export interface ParseInput {
   /** IMAP message id (idempotency anahtarı). */
@@ -207,10 +207,7 @@ export function parseGarantiMail(input: ParseInput): Transaction | null {
   const description =
     extractLabeled(text, ['Açıklama', 'Aciklama', 'İşlem Açıklaması', 'Not']) ?? '';
 
-  const id = createHash('sha1')
-    .update(`${input.mailId}|${direction}|${amount}|${datetime}`)
-    .digest('hex')
-    .slice(0, 24);
+  const id = createTxId(input.mailId, direction, amount, datetime);
 
   return {
     id,
