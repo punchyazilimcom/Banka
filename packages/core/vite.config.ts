@@ -6,6 +6,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   base: './',
+  // Tek kök .env tüm yapı için geçerli (VITE_* değişkenleri buradan okunur)
+  envDir: '../../',
   server: {
     port: 5173,
     host: true,

@@ -98,6 +98,32 @@ class FirebaseAdminClient implements BackendClient {
       batch.set(db.collection('transactions').doc(tx.id), tx, { merge: true });
     }
     await batch.commit();
+    await this.sendPush(txs).catch((e) => console.warn('[fcm] push hatası:', e));
+  }
+
+  /** Yeni işlemler için kayıtlı cihazlara FCM push gönderir. */
+  private async sendPush(txs: Transaction[]): Promise<void> {
+    if (!txs.length) return;
+    const specifier = 'firebase-admin';
+    const admin: any = await import(specifier);
+    const db = await this.dbP;
+    const devSnap = await db.collection('devices').get();
+    const tokens: string[] = [];
+    devSnap.forEach((d: any) => tokens.push(d.get('token')));
+    if (!tokens.length) return;
+
+    const t = txs[txs.length - 1];
+    const dir = t.direction === 'in' ? 'Gelen' : 'Giden';
+    const body =
+      txs.length > 1
+        ? `${txs.length} yeni işlem`
+        : `${t.amount.toLocaleString('tr-TR')} ${t.currency} · ${t.counterpartyName}`;
+
+    await admin.messaging().sendEachForMulticast({
+      tokens,
+      notification: { title: `${dir} ${t.channel}`, body },
+      data: { direction: t.direction, amount: String(t.amount) },
+    });
   }
 
   async getOverrides(): Promise<Record<string, ClassificationOverride>> {

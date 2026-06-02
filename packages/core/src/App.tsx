@@ -1,9 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from './store/useStore';
 import { injectThemeVars } from './theme/tokens';
 import { Login } from './pages/Login';
+import { FirebaseLogin } from './pages/FirebaseLogin';
+import { firebaseAuthRequired, onAuth } from './lib/firebase';
+import { initPush } from './lib/push';
 import { AppShell } from './components/layout/AppShell';
 import { Dashboard } from './pages/Dashboard';
 import { Transactions } from './pages/Transactions';
@@ -32,18 +35,37 @@ export default function App() {
   const init = useStore((s) => s.init);
   const theme = useStore((s) => s.settings.theme);
 
+  // Firebase modunda buluta erişim için oturum gerekir.
+  const needFirebase = firebaseAuthRequired();
+  const [fbUser, setFbUser] = useState<unknown | null | undefined>(needFirebase ? undefined : null);
+
   useEffect(() => {
     injectThemeVars();
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   useEffect(() => {
+    if (!needFirebase) return;
+    let unsub = () => {};
+    onAuth((u) => setFbUser(u)).then((fn) => (unsub = fn));
+    return () => unsub();
+  }, [needFirebase]);
+
+  useEffect(() => {
     if (authed) {
       void init();
       requestNotificationPermission();
+      void initPush();
     }
   }, [authed, init]);
 
+  // 1) Firebase oturumu yükleniyor
+  if (needFirebase && fbUser === undefined) {
+    return <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: 'var(--c-textMuted)' }}>Yükleniyor…</div>;
+  }
+  // 2) Firebase girişi gerekli
+  if (needFirebase && fbUser === null) return <FirebaseLogin />;
+  // 3) Yerel PIN kilidi
   if (!authed) return <Login />;
 
   return (

@@ -127,6 +127,11 @@ npm --workspace=@gtt/mobile run open:ios
 > Biyometrik giriş ve push (FCM/APNs) native kabukta `@capacitor/push-notifications`
 > ile etkinleştirilir; UI tarafı runtime'da `window.Capacitor` algılayıp kullanır.
 
+> 📱 **Telefondan her yerden (internetin her ağından) erişim + APK + FCM push** için
+> adım adım kılavuz: **[`docs/FIREBASE-ANDROID.md`](docs/FIREBASE-ANDROID.md)**.
+> Firebase modunda telefon doğrudan Firestore'a bağlanır (kendi sunucunu açmana
+> gerek kalmaz) ve giriş **e-posta/şifre** ile korunur.
+
 ---
 
 ## Backend Seçenekleri

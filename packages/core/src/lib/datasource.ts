@@ -1,4 +1,5 @@
 import type { Transaction, ClassificationOverride, CounterpartyType } from '@gtt/shared';
+import { getFirebase } from './firebase';
 
 /**
  * Cihaz tarafı veri kaynağı soyutlaması.
@@ -57,19 +58,7 @@ class SqliteSource implements DataSource {
 
 // ── Firebase (Firestore) kaynağı — dinamik import (yalnızca firebase modunda) ──
 class FirebaseSource implements DataSource {
-  private dbP = (async () => {
-    const { initializeApp } = await import('firebase/app');
-    const { getFirestore } = await import('firebase/firestore');
-    const app = initializeApp({
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-      appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    });
-    return getFirestore(app);
-  })();
+  private dbP = getFirebase().then((f) => f.db);
 
   async load(): Promise<Transaction[]> {
     const db = await this.dbP;
