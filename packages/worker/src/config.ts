@@ -2,11 +2,12 @@ import 'dotenv/config';
 import type { ImapSettings } from '@gtt/shared';
 
 function bool(v: string | undefined, def = false): boolean {
-  if (v == null) return def;
+  if (v == null || v.trim() === '') return def; // boş env → varsayılan
   return /^(1|true|yes|on)$/i.test(v);
 }
 
 function num(v: string | undefined, def: number): number {
+  if (v == null || v.trim() === '') return def;
   const n = Number(v);
   return Number.isFinite(n) ? n : def;
 }

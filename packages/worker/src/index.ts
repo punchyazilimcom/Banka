@@ -27,6 +27,13 @@ async function main() {
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
 
+  // SCAN_ONCE=true → tek seferlik tara ve çık (cron / GitHub Actions için)
+  if (/^(1|true|yes)$/i.test(process.env.SCAN_ONCE ?? '')) {
+    console.log('[worker] tek seferlik tarama modu (SCAN_ONCE)');
+    await reader.runOnce();
+    process.exit(0);
+  }
+
   await reader.start();
 }
 

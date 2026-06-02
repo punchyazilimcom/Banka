@@ -1,0 +1,48 @@
+name: Worker (zamanlanmış mail → Firebase)
+
+# 7/24 PC olmadan: belirli aralıklarla mailleri tarar, yeni işlemleri
+# Firestore'a yazar ve cihazlara FCM push gönderir. Elle de tetiklenebilir.
+on:
+  schedule:
+    - cron: '*/15 * * * *' # her 15 dakikada bir (GitHub cron en sık ~5 dk)
+  workflow_dispatch:
+
+# Aynı anda tek çalışma (çakışmayı önle)
+concurrency:
+  group: worker
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    env:
+      BACKEND_MODE: firebase
+      SCAN_ONCE: 'true'
+      IMAP_HOST: ${{ secrets.IMAP_HOST }}
+      IMAP_PORT: ${{ secrets.IMAP_PORT }}
+      IMAP_SECURE: ${{ secrets.IMAP_SECURE }}
+      IMAP_USER: ${{ secrets.IMAP_USER }}
+      IMAP_PASSWORD: ${{ secrets.IMAP_PASSWORD }}
+      IMAP_MAILBOX: ${{ secrets.IMAP_MAILBOX }}
+      IMAP_FROM_FILTER: ${{ secrets.IMAP_FROM_FILTER }}
+      IMAP_LOOKBACK_DAYS: ${{ secrets.IMAP_LOOKBACK_DAYS }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_SERVICE_ACCOUNT: ./serviceAccount.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: firebase-admin kur (firebase modu için)
+        run: npm install firebase-admin --workspace=@gtt/worker --no-save
+      - name: Servis hesabını yaz (secret → dosya)
+        run: printf '%s' "$SA_JSON" > serviceAccount.json
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      - name: Mailleri tara ve Firestore'a yaz
+        run: npm run start --workspace=@gtt/worker
+      - name: Servis hesabını sil
+        if: always()
+        run: rm -f serviceAccount.json
