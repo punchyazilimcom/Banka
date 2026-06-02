@@ -1,0 +1,5 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Garanti Transfer Takip">
+  <rect width="512" height="512" rx="112" fill="#0A0A0A"/>
+  <rect x="84" y="84" width="344" height="344" rx="84" fill="#FFD400"/>
+  <path d="M176 168h104a68 68 0 0 1 0 136h-52v60h-52V168zm52 48v40h44a20 20 0 0 0 0-40h-44z" fill="#0A0A0A"/>
+</svg>
