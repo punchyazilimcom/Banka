@@ -1,0 +1,33 @@
+{
+  "name": "garanti-transfer-takip",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Garanti BBVA transfer/havale/EFT/FAST takip sistemi - Masaüstü (.exe) + Mobil. Punch Yazılım.",
+  "author": "PUNCH YAZILIM",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@gtt/core",
+    "build": "npm run build --workspace=@gtt/core",
+    "preview": "npm run preview --workspace=@gtt/core",
+    "worker": "npm run start --workspace=@gtt/worker",
+    "worker:dev": "npm run dev --workspace=@gtt/worker",
+    "backend": "npm run start --workspace=@gtt/backend",
+    "test": "npm run test --workspaces --if-present",
+    "test:parser": "npm run test --workspace=@gtt/worker",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "desktop:dev": "npm run dev --workspace=@gtt/desktop",
+    "desktop:build": "npm run build --workspace=@gtt/desktop",
+    "mobile:sync": "npm run sync --workspace=@gtt/mobile",
+    "lint": "echo \"(lint placeholder - eslint config per package)\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

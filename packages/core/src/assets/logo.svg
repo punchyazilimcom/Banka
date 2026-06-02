@@ -1,0 +1,6 @@
+<svg width="160" height="40" viewBox="0 0 160 40" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Punch Yazılım">
+  <rect x="0" y="2" width="36" height="36" rx="10" fill="#FFD400"/>
+  <path d="M11 11h9a6 6 0 0 1 0 12h-4v6h-5V11zm5 4v4h3a2 2 0 0 0 0-4h-3z" fill="#0A0A0A"/>
+  <text x="46" y="18" font-family="Sora, Manrope, sans-serif" font-size="14" font-weight="800" fill="#FFFFFF" letter-spacing="0.5">PUNCH</text>
+  <text x="46" y="33" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#FFD400" letter-spacing="2.5">YAZILIM</text>
+</svg>

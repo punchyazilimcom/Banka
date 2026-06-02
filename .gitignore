@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+dist-electron/
+build/
+out/
+release/
+*.tsbuildinfo
+
+# Vite
+.vite/
+
+# Env & secrets
+.env
+.env.local
+.env.*.local
+*.secret
+serviceAccount*.json
+google-services.json
+GoogleService-Info.plist
+
+# Local data (self-host SQLite)
+data/
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+Thumbs.db
+
+# Capacitor native platforms (generated) + kopyalanan web
+apps/mobile/android/
+apps/mobile/ios/
+apps/mobile/www/
+
+# Electron build artifacts
+apps/desktop/release/
