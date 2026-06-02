@@ -1,0 +1,58 @@
+{
+  "name": "@gtt/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Garanti Transfer Takip - Masaüstü (Electron .exe). Punch Yazılım.",
+  "author": "PUNCH YAZILIM",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "build:core": "npm run build --workspace=@gtt/core",
+    "build:electron": "tsc -p tsconfig.json",
+    "dev": "npm run build:core && npm run build:electron && electron .",
+    "build": "npm run build:core && npm run build:electron && electron-builder",
+    "build:win": "npm run build:core && npm run build:electron && electron-builder --win nsis",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "electron": "^30.0.9",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.4.5"
+  },
+  "build": {
+    "appId": "com.punchyazilim.garantitakip",
+    "productName": "Garanti Transfer Takip",
+    "copyright": "© PUNCH YAZILIM",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../../packages/core/dist",
+        "to": "app-ui"
+      }
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "artifactName": "GarantiTransferTakip-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Garanti Transfer Takip"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.finance"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Finance"
+    }
+  }
+}

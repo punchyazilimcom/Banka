@@ -1,0 +1,29 @@
+{
+  "name": "@gtt/mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Garanti Transfer Takip - Mobil (Capacitor Android/iOS). Punch Yazılım.",
+  "author": "PUNCH YAZILIM",
+  "scripts": {
+    "build:core": "npm run build --workspace=@gtt/core",
+    "copy:web": "node ./scripts/copy-web.mjs",
+    "sync": "npm run build:core && npm run copy:web && cap sync",
+    "add:android": "cap add android",
+    "add:ios": "cap add ios",
+    "open:android": "cap open android",
+    "open:ios": "cap open ios",
+    "run:android": "npm run sync && cap run android"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/app": "^6.0.0",
+    "@capacitor/core": "^6.1.0",
+    "@capacitor/haptics": "^6.0.0",
+    "@capacitor/ios": "^6.1.0",
+    "@capacitor/push-notifications": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0"
+  }
+}

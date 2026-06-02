@@ -41,9 +41,10 @@ npm-debug.log*
 !.vscode/extensions.json
 Thumbs.db
 
-# Capacitor native platforms (generated)
+# Capacitor native platforms (generated) + kopyalanan web
 apps/mobile/android/
 apps/mobile/ios/
+apps/mobile/www/
 
 # Electron build artifacts
 apps/desktop/release/
