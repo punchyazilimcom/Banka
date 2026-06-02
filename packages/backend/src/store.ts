@@ -77,17 +77,21 @@ export class Store {
         description = excluded.description,
         balanceAfter = excluded.balanceAfter
     `);
+    // Gerçekten YENİ olanları ayırt et: ON CONFLICT DO UPDATE her durumda
+    // changes=1 döndürdüğünden, önce varlığı kontrol ederiz (idempotency).
+    const exists = this.db.prepare('SELECT 1 FROM transactions WHERE id = ?');
     const inserted: Transaction[] = [];
     const tx = this.db.transaction((rows: Transaction[]) => {
       for (const r of rows) {
-        const info = stmt.run({
+        const wasNew = !exists.get(r.id);
+        stmt.run({
           ...r,
           iban: r.iban ?? null,
           description: r.description ?? '',
           balanceAfter: r.balanceAfter ?? null,
           raw: r.raw ?? '',
         });
-        if (info.changes > 0) inserted.push(r);
+        if (wasNew) inserted.push(r);
       }
     });
     tx(txs);
