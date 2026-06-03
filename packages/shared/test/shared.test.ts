@@ -11,6 +11,8 @@ import {
   monthlyFlow,
   summarizeCounterparties,
   topCounterparties,
+  filterByDateRange,
+  transactionStats,
   periodStart,
   createTxId,
   type Transaction,
@@ -149,4 +151,21 @@ describe('sampleTransactions', () => {
     for (let i = 1; i < s.length; i++) expect(s[i - 1].datetime >= s[i].datetime).toBe(true);
   });
   it('benzersiz id', () => expect(new Set(s.map((t) => t.id)).size).toBe(80));
+});
+
+describe('filterByDateRange', () => {
+  it('aralık dışını eler', () => {
+    const r = filterByDateRange(txs, '2026-06-02', '2026-06-02');
+    expect(r.length).toBe(1);
+    expect(r[0].id).toBe('c');
+  });
+  it('boş aralık = hepsi', () => expect(filterByDateRange(txs).length).toBe(3));
+});
+
+describe('transactionStats', () => {
+  const st = transactionStats(txs);
+  it('sayı/net', () => { expect(st.count).toBe(3); expect(st.net).toBe(120); });
+  it('en büyük işlem', () => expect(st.largest?.amount).toBe(100));
+  it('ortalama', () => expect(Math.round(st.avgAmount)).toBe(67));
+  it('en yoğun gün', () => expect(st.busiestDay?.date).toBe('2026-06-01'));
 });
