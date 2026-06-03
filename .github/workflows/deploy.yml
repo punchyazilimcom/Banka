@@ -32,10 +32,10 @@ jobs:
           SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
       - name: firebase-tools kur
         run: npm i -g firebase-tools
-      - name: Deploy (hosting + Firestore kuralları/indeksleri)
+      - name: Deploy (yalnızca Hosting)
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/serviceAccount.json
-        run: firebase deploy --only hosting,firestore:rules,firestore:indexes --project payl-51cf4 --non-interactive
+        run: firebase deploy --only hosting --project payl-51cf4 --non-interactive
       - name: Servis hesabını sil
         if: always()
         run: rm -f "$GITHUB_WORKSPACE/serviceAccount.json"
