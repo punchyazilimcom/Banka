@@ -12,9 +12,14 @@ async function main() {
 
   const backend = createBackendClient(cfg);
 
+  // REPROCESS=true → bilinen mailId'leri yok say, hepsini yeniden ayrıştır.
+  // Mevcut kayıtlar (aynı id) üzerine yazılır; parser düzeltmelerini uygulamak için.
+  const reprocess = /^(1|true|yes)$/i.test(process.env.REPROCESS ?? '');
+  if (reprocess) console.log('[worker] YENİDEN İŞLEME modu (REPROCESS) — tüm mailler yeniden ayrıştırılacak');
+
   const reader = new MailReader({
     settings: cfg.imap,
-    knownMailIds: () => backend.knownMailIds(),
+    knownMailIds: reprocess ? async () => new Set<string>() : () => backend.knownMailIds(),
     getOverrides: () => backend.getOverrides(),
     onTransactions: (txs) => backend.saveTransactions(txs),
   });

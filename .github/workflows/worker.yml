@@ -6,6 +6,11 @@ on:
   schedule:
     - cron: '*/15 * * * *' # her 15 dakikada bir (GitHub cron en sık ~5 dk)
   workflow_dispatch:
+    inputs:
+      reprocess:
+        description: 'Tüm mailleri yeniden işle (mevcut kayıtları güncelle)'
+        required: false
+        default: 'false'
 
 # Aynı anda tek çalışma (çakışmayı önle)
 concurrency:
@@ -18,6 +23,7 @@ jobs:
     env:
       BACKEND_MODE: firebase
       SCAN_ONCE: 'true'
+      REPROCESS: ${{ github.event.inputs.reprocess }}
       IMAP_HOST: ${{ secrets.IMAP_HOST }}
       IMAP_PORT: ${{ secrets.IMAP_PORT }}
       IMAP_SECURE: ${{ secrets.IMAP_SECURE }}
