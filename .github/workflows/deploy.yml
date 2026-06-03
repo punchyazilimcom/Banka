@@ -1,0 +1,41 @@
+name: Yayınla (Firebase Hosting + kurallar)
+
+# UI'yı Firebase web config gömülü olarak derler, Firebase Hosting'e ve
+# Firestore kurallarına deploy eder. Telefondan https://payl-51cf4.web.app açılır.
+# Elle tetiklenir (Actions → "Yayınla" → Run workflow).
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VITE_BACKEND_MODE: firebase
+      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+      VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+      VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Core UI build (Firebase config gömülü)
+        run: npm run build --workspace=@gtt/core
+      - name: Servis hesabını yaz (secret → dosya)
+        run: printf '%s' "$SA_JSON" > "$GITHUB_WORKSPACE/serviceAccount.json"
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      - name: firebase-tools kur
+        run: npm i -g firebase-tools
+      - name: Deploy (hosting + Firestore kuralları/indeksleri)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/serviceAccount.json
+        run: firebase deploy --only hosting,firestore:rules,firestore:indexes --project payl-51cf4 --non-interactive
+      - name: Servis hesabını sil
+        if: always()
+        run: rm -f "$GITHUB_WORKSPACE/serviceAccount.json"
