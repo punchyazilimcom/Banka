@@ -12,33 +12,49 @@ import {
   Cell,
   Legend,
 } from 'recharts';
-import { FileSpreadsheet, FileText } from 'lucide-react';
-import { monthlyFlow, topCounterparties, computeTotals, formatMoney } from '@gtt/shared';
+import { FileSpreadsheet, FileText, FileDown, TrendingUp, Award, Calculator, CalendarClock } from 'lucide-react';
+import { monthlyFlow, topCounterparties, computeTotals, transactionStats, formatMoney } from '@gtt/shared';
 import { useStore } from '../store/useStore';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { exportXlsx, exportPdf } from '../lib/export';
+import { exportXlsx, exportPdf, exportCsv } from '../lib/export';
 
 export function Reports() {
   const txs = useStore((s) => s.transactions);
   const monthly = useMemo(() => monthlyFlow(txs), [txs]);
   const topFirms = useMemo(() => topCounterparties(txs.filter((t) => t.counterpartyType === 'firm'), 'out', 10), [txs]);
   const totals = useMemo(() => computeTotals(txs), [txs]);
+  const stats = useMemo(() => transactionStats(txs), [txs]);
 
   const pieData = [
     { name: 'Gelen', value: totals.in, color: '#2ECC71' },
     { name: 'Giden', value: totals.out, color: '#FF4D4D' },
   ];
 
+  const busiest = stats.busiestDay
+    ? new Date(stats.busiestDay.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
+    : '—';
+
   return (
     <div style={{ display: 'grid', gap: 18 }}>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <Button variant="primary" onClick={() => exportXlsx(txs)}>
-          <FileSpreadsheet size={16} /> Excel (.xlsx)
+          <FileSpreadsheet size={16} /> Excel
+        </Button>
+        <Button variant="surface" onClick={() => exportCsv(txs)}>
+          <FileDown size={16} /> CSV
         </Button>
         <Button variant="surface" onClick={() => exportPdf(txs)}>
           <FileText size={16} /> PDF
         </Button>
+      </div>
+
+      {/* Özet istatistik kartları */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+        <StatMini icon={<Calculator size={16} />} label="İşlem sayısı" value={String(stats.count)} />
+        <StatMini icon={<Award size={16} />} label="En büyük işlem" value={stats.largest ? formatMoney(stats.largest.amount) : '—'} sub={stats.largest?.counterpartyName} />
+        <StatMini icon={<TrendingUp size={16} />} label="Ortalama işlem" value={formatMoney(stats.avgAmount)} />
+        <StatMini icon={<CalendarClock size={16} />} label="En yoğun gün" value={busiest} sub={stats.busiestDay ? `${stats.busiestDay.count} işlem` : undefined} />
       </div>
 
       <Card>
@@ -110,5 +126,30 @@ export function Reports() {
         </Card>
       </div>
     </div>
+  );
+}
+
+function StatMini({
+  icon, label, value, sub,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub?: string;
+}) {
+  return (
+    <Card style={{ padding: 'var(--s-md)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--c-accent)', fontSize: 12, fontWeight: 600 }}>
+        {icon} {label}
+      </div>
+      <div className="tabular" style={{ fontSize: 18, fontWeight: 700, marginTop: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {value}
+      </div>
+      {sub && (
+        <div style={{ fontSize: 11, color: 'var(--c-textMuted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {sub}
+        </div>
+      )}
+    </Card>
   );
 }

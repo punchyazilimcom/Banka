@@ -68,3 +68,38 @@ export function exportPdf(txs: Transaction[], filename = 'garanti-rapor.pdf') {
   }
   doc.save(filename);
 }
+
+/** İşlemleri .csv olarak indir (Excel/Sheets uyumlu, UTF-8 BOM'lu). */
+export function exportCsv(txs: Transaction[], filename = 'garanti-islemler.csv') {
+  const headers = ['Tarih', 'Yön', 'Tutar', 'Para Birimi', 'Karşı Taraf', 'Tür', 'Kanal', 'IBAN', 'Açıklama', 'Bakiye'];
+  const esc = (v: string | number) => {
+    const s = String(v ?? '');
+    return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const lines = [headers.join(';')];
+  for (const t of txs) {
+    lines.push(
+      [
+        new Date(t.datetime).toLocaleString('tr-TR'),
+        t.direction === 'in' ? 'Gelen' : 'Giden',
+        t.amount.toFixed(2).replace('.', ','),
+        t.currency,
+        t.counterpartyName,
+        t.counterpartyType === 'firm' ? 'Firma' : 'Kişi',
+        t.channel,
+        t.iban ?? '',
+        t.description ?? '',
+        t.balanceAfter != null ? t.balanceAfter.toFixed(2).replace('.', ',') : '',
+      ]
+        .map(esc)
+        .join(';'),
+    );
+  }
+  const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}

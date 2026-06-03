@@ -164,3 +164,52 @@ export function topCounterparties(
   }
   return [...map.values()].sort((a, b) => b.total - a.total).slice(0, n);
 }
+
+/** Tarih aralığına göre filtre (YYYY-MM-DD, dahil). */
+export function filterByDateRange(
+  txs: Transaction[],
+  fromISO?: string,
+  toISO?: string,
+): Transaction[] {
+  return txs.filter((t) => {
+    const d = t.datetime.slice(0, 10);
+    if (fromISO && d < fromISO) return false;
+    if (toISO && d > toISO) return false;
+    return true;
+  });
+}
+
+export interface TxStats {
+  count: number;
+  totalIn: number;
+  totalOut: number;
+  net: number;
+  avgAmount: number;
+  largest?: Transaction;
+  busiestDay?: { date: string; count: number };
+}
+
+/** Rapor/özet istatistikleri: en büyük işlem, ortalama, en yoğun gün vb. */
+export function transactionStats(txs: Transaction[]): TxStats {
+  const t = computeTotals(txs);
+  let largest: Transaction | undefined;
+  const dayCounts = new Map<string, number>();
+  for (const tx of txs) {
+    if (!largest || tx.amount > largest.amount) largest = tx;
+    const k = dayKey(tx.datetime);
+    dayCounts.set(k, (dayCounts.get(k) ?? 0) + 1);
+  }
+  let busiestDay: { date: string; count: number } | undefined;
+  for (const [date, count] of dayCounts) {
+    if (!busiestDay || count > busiestDay.count) busiestDay = { date, count };
+  }
+  return {
+    count: t.count,
+    totalIn: t.in,
+    totalOut: t.out,
+    net: t.net,
+    avgAmount: t.count ? (t.in + t.out) / t.count : 0,
+    largest,
+    busiestDay,
+  };
+}
