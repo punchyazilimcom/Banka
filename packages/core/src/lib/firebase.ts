@@ -11,16 +11,16 @@ let appP: Promise<{ app: FirebaseApp; auth: Auth; db: Firestore }> | null = null
 
 /**
  * Firebase web yapılandırması. Bu değerler GİZLİ DEĞİLDİR — her web istemcisine
- * gömülür; güvenlik Firestore kuralları + Auth ile sağlanır. Bu yüzden varsayılan
- * olarak koda gömülür; istenirse VITE_FIREBASE_* env ile geçersiz kılınabilir.
+ * gömülür; güvenlik Firestore kuralları + Auth ile sağlanır. Doğrudan koda gömülü
+ * (env ile ezilmez ki yanlış/eski secret'lar araya girmesin).
  */
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyAjnQKgFe1eBObPf7eUhI2TI8qqm3l32o4',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'payl-51cf4.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'payl-51cf4',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'payl-51cf4.firebasestorage.app',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '61034453471',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:61034453471:web:2f217985fb797763b3cc6a',
+  apiKey: 'AIzaSyAjnQKgFe1eBObPf7eUhI2TI8qqm3l32o4',
+  authDomain: 'payl-51cf4.firebaseapp.com',
+  projectId: 'payl-51cf4',
+  storageBucket: 'payl-51cf4.firebasestorage.app',
+  messagingSenderId: '61034453471',
+  appId: '1:61034453471:web:2f217985fb797763b3cc6a',
 };
 
 export const FIREBASE_MODE = import.meta.env.VITE_BACKEND_MODE === 'firebase';
