@@ -61,6 +61,22 @@ export class MailReader {
     }
   }
 
+  /**
+   * Tek seferlik tarama: bağlan → son N günü tara → bağlantıyı kapat.
+   * IDLE dinlemez. Zamanlanmış (cron / GitHub Actions) çalıştırma için.
+   */
+  async runOnce(): Promise<void> {
+    if (!this.deps.settings.user || !this.deps.settings.password) {
+      throw new Error('IMAP kullanıcı/şifre tanımlı değil (.env).');
+    }
+    await this.client.connect();
+    this.log(`bağlandı: ${this.deps.settings.user}`);
+    await this.client.mailboxOpen(this.deps.settings.mailbox);
+    await this.scanRecent();
+    await this.stop();
+    this.log('tek seferlik tarama tamamlandı.');
+  }
+
   /** Son N gün içindeki, henüz işlenmemiş mailleri tarar. */
   async scanRecent(): Promise<void> {
     if (this.stopped) return;

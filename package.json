@@ -21,6 +21,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "desktop:dev": "npm run dev --workspace=@gtt/desktop",
     "desktop:build": "npm run build --workspace=@gtt/desktop",
+    "deploy": "npm run build && firebase deploy --only hosting",
+    "deploy:all": "npm run build && firebase deploy --only hosting,firestore:rules,firestore:indexes",
     "mobile:sync": "npm run sync --workspace=@gtt/mobile",
     "lint": "echo \"(lint placeholder - eslint config per package)\""
   },

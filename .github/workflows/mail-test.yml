@@ -1,0 +1,34 @@
+name: Mail Testi (IMAP dry-run)
+
+# Telefondan elle tetiklenir: GitHub → Actions → "Mail Testi" → Run workflow.
+# Mailleri okuyup ayrıştırılan işlemleri loga basar. HİÇBİR ŞEY kaydetmez.
+# Gizli bilgiler GitHub Secrets'tan gelir (repoda/sohbette tutulmaz).
+on:
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: 'Kaç günlük mail taransın?'
+        required: false
+        default: '60'
+
+jobs:
+  test-imap:
+    runs-on: ubuntu-latest
+    env:
+      IMAP_HOST: ${{ secrets.IMAP_HOST }}
+      IMAP_PORT: ${{ secrets.IMAP_PORT }}
+      IMAP_SECURE: ${{ secrets.IMAP_SECURE }}
+      IMAP_USER: ${{ secrets.IMAP_USER }}
+      IMAP_PASSWORD: ${{ secrets.IMAP_PASSWORD }}
+      IMAP_MAILBOX: ${{ secrets.IMAP_MAILBOX }}
+      IMAP_FROM_FILTER: ${{ secrets.IMAP_FROM_FILTER }}
+      IMAP_LOOKBACK_DAYS: ${{ github.event.inputs.lookback_days }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: IMAP bağlan + ayrıştır (dry-run)
+        run: npm run test:imap --workspace=@gtt/worker
