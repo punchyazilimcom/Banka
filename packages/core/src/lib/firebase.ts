@@ -9,10 +9,24 @@ import type { Firestore } from 'firebase/firestore';
  */
 let appP: Promise<{ app: FirebaseApp; auth: Auth; db: Firestore }> | null = null;
 
+/**
+ * Firebase web yapılandırması. Bu değerler GİZLİ DEĞİLDİR — her web istemcisine
+ * gömülür; güvenlik Firestore kuralları + Auth ile sağlanır. Bu yüzden varsayılan
+ * olarak koda gömülür; istenirse VITE_FIREBASE_* env ile geçersiz kılınabilir.
+ */
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyAjnQKgFe1eBObPf7eUhI2TI8qqm3l32o4',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'payl-51cf4.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'payl-51cf4',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'payl-51cf4.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '61034453471',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:61034453471:web:2f217985fb797763b3cc6a',
+};
+
 export const FIREBASE_MODE = import.meta.env.VITE_BACKEND_MODE === 'firebase';
 
 export function firebaseConfigPresent(): boolean {
-  return !!import.meta.env.VITE_FIREBASE_API_KEY && !!import.meta.env.VITE_FIREBASE_PROJECT_ID;
+  return !!firebaseConfig.apiKey && !!firebaseConfig.projectId;
 }
 
 /** Firebase girişi gerekli mi? (mod firebase + config mevcut) */
@@ -26,14 +40,7 @@ export function getFirebase() {
       const { initializeApp } = await import('firebase/app');
       const { getAuth } = await import('firebase/auth');
       const { getFirestore } = await import('firebase/firestore');
-      const app = initializeApp({
-        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: import.meta.env.VITE_FIREBASE_APP_ID,
-      });
+      const app = initializeApp(firebaseConfig);
       return { app, auth: getAuth(app), db: getFirestore(app) };
     })();
   }
