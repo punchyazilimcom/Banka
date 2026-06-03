@@ -27,7 +27,7 @@ jobs:
       IMAP_FROM_FILTER: ${{ secrets.IMAP_FROM_FILTER }}
       IMAP_LOOKBACK_DAYS: ${{ secrets.IMAP_LOOKBACK_DAYS }}
       FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-      FIREBASE_SERVICE_ACCOUNT: ./serviceAccount.json
+      FIREBASE_SERVICE_ACCOUNT: ${{ github.workspace }}/serviceAccount.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,11 +38,11 @@ jobs:
       - name: firebase-admin kur (firebase modu için)
         run: npm install firebase-admin --workspace=@gtt/worker --no-save
       - name: Servis hesabını yaz (secret → dosya)
-        run: printf '%s' "$SA_JSON" > serviceAccount.json
+        run: printf '%s' "$SA_JSON" > "$GITHUB_WORKSPACE/serviceAccount.json"
         env:
           SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
       - name: Mailleri tara ve Firestore'a yaz
         run: npm run start --workspace=@gtt/worker
       - name: Servis hesabını sil
         if: always()
-        run: rm -f serviceAccount.json
+        run: rm -f "$GITHUB_WORKSPACE/serviceAccount.json"
