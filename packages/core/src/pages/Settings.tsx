@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Mail, Palette, RefreshCw, Database, Tags, Building2, User, Bell } from 'lucide-react';
+import { Mail, Palette, RefreshCw, Database, Tags, Building2, User, Bell, ShieldCheck, LogOut, KeyRound, Wallet } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { clearPin } from '../lib/pin';
 
 const IMAP_KEY = 'gtt.imap.settings';
 
@@ -12,6 +13,22 @@ export function Settings() {
   const overrides = useStore((s) => s.overrides);
   const correctType = useStore((s) => s.correctType);
   const txs = useStore((s) => s.transactions);
+  const setAuthed = useStore((s) => s.setAuthed);
+  const logout = useStore((s) => s.logout);
+  const [limitInput, setLimitInput] = useState(String(settings.monthlyLimit || ''));
+
+  const changePin = () => {
+    if (confirm('PIN sıfırlansın mı? Sonraki ekranda yeni PIN belirleyeceksiniz.')) {
+      clearPin();
+      setAuthed(false);
+    }
+  };
+  const doLogout = () => {
+    if (confirm('Çıkış yapılsın mı?')) {
+      clearPin();
+      void logout();
+    }
+  };
 
   const [imap, setImap] = useState(() => {
     try {
@@ -43,6 +60,40 @@ export function Settings() {
 
   return (
     <div style={{ display: 'grid', gap: 18, maxWidth: 640 }}>
+      {/* Güvenlik */}
+      <Card>
+        <SectionTitle icon={<ShieldCheck size={18} />}>Güvenlik</SectionTitle>
+        <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+          <Button variant="surface" onClick={changePin}>
+            <KeyRound size={16} /> PIN'i değiştir
+          </Button>
+          <Button variant="ghost" onClick={doLogout}>
+            <LogOut size={16} /> Çıkış yap
+          </Button>
+        </div>
+      </Card>
+
+      {/* Aylık harcama limiti */}
+      <Card>
+        <SectionTitle icon={<Wallet size={18} />}>Aylık Harcama Limiti</SectionTitle>
+        <p style={{ fontSize: 12, color: 'var(--c-textMuted)', margin: '8px 0 12px' }}>
+          Bu ayki giden toplam limiti aşınca Panel'de uyarı gösterilir. 0 = limit yok.
+        </p>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <input
+            value={limitInput}
+            onChange={(e) => setLimitInput(e.target.value)}
+            inputMode="decimal"
+            placeholder="örn. 25000"
+            style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 'var(--r-sm)', padding: '10px 12px', fontSize: 14, width: 160 }}
+          />
+          <span style={{ color: 'var(--c-textMuted)' }}>TL</span>
+          <Button onClick={() => updateSettings({ monthlyLimit: parseFloat(limitInput.replace(',', '.')) || 0 })}>
+            Kaydet
+          </Button>
+        </div>
+      </Card>
+
       {/* IMAP */}
       <Card>
         <SectionTitle icon={<Mail size={18} />}>IMAP Hesabı</SectionTitle>

@@ -15,6 +15,8 @@ export interface Settings {
   notificationsEnabled: boolean;
   /** Backend erişilemezse örnek veri kullan (demo). */
   useMockOnError: boolean;
+  /** Aylık harcama (giden) limiti; 0/undefined = limit yok. */
+  monthlyLimit?: number;
 }
 
 const SETTINGS_KEY = 'gtt.settings';
@@ -25,10 +27,11 @@ function loadSettings(): Settings {
       syncIntervalSec: 60,
       notificationsEnabled: true,
       useMockOnError: true,
+      monthlyLimit: 0,
       ...JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}'),
     };
   } catch {
-    return { theme: 'dark', syncIntervalSec: 60, notificationsEnabled: true, useMockOnError: true };
+    return { theme: 'dark', syncIntervalSec: 60, notificationsEnabled: true, useMockOnError: true, monthlyLimit: 0 };
   }
 }
 
@@ -47,6 +50,7 @@ interface State {
   ingestNew: (txs: Transaction[]) => void;
   correctType: (name: string, type: CounterpartyType) => Promise<void>;
   updateSettings: (patch: Partial<Settings>) => void;
+  logout: () => Promise<void>;
 }
 
 export const useStore = create<State>((set, get) => ({
@@ -121,5 +125,15 @@ export const useStore = create<State>((set, get) => ({
     const next = { ...get().settings, ...patch };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
     set({ settings: next });
+  },
+
+  logout: async () => {
+    try {
+      const { firebaseAuthRequired, signOutFirebase } = await import('../lib/firebase');
+      if (firebaseAuthRequired()) await signOutFirebase();
+    } catch (e) {
+      console.warn('[store] firebase çıkış:', e);
+    }
+    set({ authed: false, transactions: [], lastNew: null });
   },
 }));
