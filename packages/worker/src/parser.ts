@@ -86,11 +86,29 @@ function extractLabeled(text: string, labels: string[]): string | undefined {
 
 function detectDirection(text: string, subject = ''): Direction | null {
   const hay = `${subject}\n${text}`;
+
+  // Gerçek Garanti formatları (öncelikli):
+  // GELEN: "Gelen Para Transferi" / "Gönderici Ad Soyad:" / "hesabınıza ... gerçekleşti"
+  if (
+    /gelen\s+para\s+transferi/i.test(hay) ||
+    /g[öo]nderici\s*ad\s*soyad/i.test(hay) ||
+    /hesab[ıi]n[ıi]za\s+para\s+transferi\s+ger[çc]ekle[şs]/i.test(hay)
+  ) {
+    return 'in';
+  }
+  // GİDEN: "Alıcı Bilgileri:" / "para transferi işleminiz gerçekleşmiştir"
+  if (
+    /al[ıi]c[ıi]\s*bilgileri/i.test(hay) ||
+    /para\s+transferi\s+i[şs]leminiz\s+ger[çc]ekle[şs]/i.test(hay)
+  ) {
+    return 'out';
+  }
+
+  // Eski/genel sezgiler (fallback)
   const inHit = DIRECTION_IN.test(hay);
   const outHit = DIRECTION_OUT.test(hay);
   if (inHit && !outHit) return 'in';
   if (outHit && !inHit) return 'out';
-  // Her ikisi de geçiyorsa: alıcı/giden ibaresi çıkış lehine baskındır.
   if (outHit && /al[ıi]c[ıi]|g[öo]nderildi|hesab[ıi]n[ıi]zdan/i.test(hay)) return 'out';
   if (inHit) return 'in';
   return null;
@@ -168,7 +186,19 @@ function extractIban(text: string): string | undefined {
 }
 
 function extractCounterparty(text: string, direction: Direction): string {
-  const inLabels = ['Gönderen', 'Gonderen', 'Gönderen Ad', 'Ad Soyad', 'Gönderen Adı'];
+  // ── Gerçek Garanti formatları ──
+  if (direction === 'in') {
+    // GELEN: "Gönderici Ad Soyad: <isim>" (aynı satır)
+    const m = text.match(/g[öo]nderici\s*ad\s*soyad\s*[:：]\s*(.+)/i);
+    if (m?.[1]) return cleanName(m[1]);
+  } else {
+    // GİDEN: "Alıcı Bilgileri:" → isim BİR ALT satırda
+    const m = text.match(/al[ıi]c[ıi]\s*bilgileri\s*[:：]?\s*\n+\s*([^\n]+)/i);
+    if (m?.[1]) return cleanName(m[1]);
+  }
+
+  // ── Eski/genel tek-satır etiketli formatlar (fallback) ──
+  const inLabels = ['Gönderici Ad Soyad', 'Gönderen', 'Gonderen', 'Gönderen Ad', 'Ad Soyad', 'Gönderen Adı'];
   const outLabels = ['Alıcı', 'Alici', 'Alıcı Ad', 'Alıcı Adı', 'Alıcı Ad Soyad', 'Hesap Sahibi'];
   const labels = direction === 'in' ? [...inLabels, ...outLabels] : [...outLabels, ...inLabels];
   const found = extractLabeled(text, labels);

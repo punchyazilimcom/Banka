@@ -69,12 +69,14 @@ export function classifyCounterparty(
   const override = overrides[key];
   if (override) return override.type;
 
-  const upper = key;
-  if (FIRM_REGEX.test(upper)) return 'firm';
+  // Firma eki testi NOKTALI orijinal isim üzerinde yapılır ("A.Ş.", "Ltd.")
+  // çünkü normalizeName noktaları boşluğa çevirir ve "A.Ş" kaçabilir.
+  const upperDotted = name.toLocaleUpperCase('tr-TR');
+  if (FIRM_REGEX.test(upperDotted)) return 'firm';
 
   // VKN: tam olarak 10 hane ardışık rakam (TC kimlik 11 hane → kişi olabilir).
-  const vknMatch = upper.match(VKN_REGEX);
-  if (vknMatch && !/\d{11}/.test(upper)) return 'firm';
+  const vknMatch = key.match(VKN_REGEX);
+  if (vknMatch && !/\d{11}/.test(key)) return 'firm';
 
   return 'person';
 }
