@@ -79,7 +79,10 @@ class FirebaseAdminClient implements BackendClient {
           : admin.credential.applicationDefault();
         admin.initializeApp({ credential: cred, projectId });
       }
-      return admin.firestore();
+      const db = admin.firestore();
+      // iban gibi opsiyonel alanlar undefined olabilir; Firestore bunu reddeder.
+      db.settings({ ignoreUndefinedProperties: true });
+      return db;
     })();
   }
 
