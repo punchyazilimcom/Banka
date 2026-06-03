@@ -45,6 +45,21 @@ export function Dashboard() {
   }, [txs, totals.net]);
   const recent = txs.slice(0, 8);
 
+  // Bu ay vs geçen ay + harcama limiti
+  const monthlyLimit = useStore((s) => s.settings.monthlyLimit) || 0;
+  const compare = useMemo(() => {
+    const now = new Date();
+    const thisKey = now.toISOString().slice(0, 7);
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevKey = prev.toISOString().slice(0, 7);
+    const t = computeTotals(txs.filter((x) => x.datetime.slice(0, 7) === thisKey));
+    const p = computeTotals(txs.filter((x) => x.datetime.slice(0, 7) === prevKey));
+    const pct = (cur: number, old: number) => (old > 0 ? ((cur - old) / old) * 100 : cur > 0 ? 100 : 0);
+    return { thisIn: t.in, thisOut: t.out, inPct: pct(t.in, p.in), outPct: pct(t.out, p.out), hasPrev: p.count > 0 };
+  }, [txs]);
+  const limitPct = monthlyLimit > 0 ? Math.min(100, (compare.thisOut / monthlyLimit) * 100) : 0;
+  const overLimit = monthlyLimit > 0 && compare.thisOut > monthlyLimit;
+
   if (loading) {
     return (
       <div style={{ display: 'grid', gap: 16 }}>
@@ -110,6 +125,36 @@ export function Dashboard() {
           delay={0.15}
         />
       </div>
+
+      {/* Aylık harcama limiti */}
+      {monthlyLimit > 0 && (
+        <Card delay={0.17}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <h4 style={{ fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Wallet size={16} color="var(--c-accent)" /> Aylık Harcama Limiti
+            </h4>
+            <span className="tabular" style={{ fontSize: 13, color: overLimit ? 'var(--c-out)' : 'var(--c-textSecondary)' }}>
+              {formatMoney(compare.thisOut)} / {formatMoney(monthlyLimit)}
+            </span>
+          </div>
+          <div style={{ height: 10, background: 'var(--c-surface)', borderRadius: 999, overflow: 'hidden' }}>
+            <div style={{ width: `${limitPct}%`, height: '100%', background: overLimit ? 'var(--c-out)' : 'var(--c-accent)', borderRadius: 999, transition: 'width .6s' }} />
+          </div>
+          {overLimit && (
+            <div style={{ marginTop: 8, fontSize: 12, color: 'var(--c-out)', fontWeight: 600 }}>
+              ⚠ Limit aşıldı: {formatMoney(compare.thisOut - monthlyLimit)} üzerinde
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* Bu ay vs geçen ay */}
+      {compare.hasPrev && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+          <CompareCard label="Bu ay gelen" value={compare.thisIn} pct={compare.inPct} good="up" delay={0.18} />
+          <CompareCard label="Bu ay giden" value={compare.thisOut} pct={compare.outPct} good="down" delay={0.22} />
+        </div>
+      )}
 
       {/* Günlük akış grafiği */}
       <Card delay={0.2}>
@@ -180,6 +225,34 @@ function StatCard({
       <motion.div style={{ fontSize: 22, fontWeight: 700, marginTop: 8, color }}>
         <AnimatedNumber value={value} />
       </motion.div>
+    </Card>
+  );
+}
+
+function CompareCard({
+  label,
+  value,
+  pct,
+  good,
+  delay,
+}: {
+  label: string;
+  value: number;
+  pct: number;
+  good: 'up' | 'down';
+  delay: number;
+}) {
+  const up = pct >= 0;
+  // "good" yön: gelen artması iyi (yeşil), giden artması kötü (kırmızı)
+  const positive = good === 'up' ? up : !up;
+  const color = pct === 0 ? 'var(--c-textMuted)' : positive ? 'var(--c-in)' : 'var(--c-out)';
+  return (
+    <Card delay={delay}>
+      <div style={{ fontSize: 13, color: 'var(--c-textMuted)' }}>{label}</div>
+      <div className="tabular" style={{ fontSize: 20, fontWeight: 700, marginTop: 6 }}>{formatMoney(value)}</div>
+      <div style={{ fontSize: 12, color, marginTop: 4, fontWeight: 600 }}>
+        {up ? '▲' : '▼'} {Math.abs(pct).toFixed(0)}% <span style={{ color: 'var(--c-textMuted)', fontWeight: 400 }}>geçen aya göre</span>
+      </div>
     </Card>
   );
 }
