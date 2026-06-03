@@ -43,7 +43,13 @@ async function main() {
     await reader.scanRecent();
   } catch (e: any) {
     console.error(`\n  ✗ Bağlantı/okuma hatası: ${e?.message ?? e}`);
-    console.error('    İpucu: Gmail için 2FA + "uygulama şifresi" gerekir; IMAP açık olmalı.\n');
+    // imapflow ayrıntılı alanları (gerçek sunucu yanıtı)
+    if (e?.authenticationFailed) console.error('    → Kimlik doğrulama BAŞARISIZ (kullanıcı/parola reddedildi)');
+    if (e?.serverResponseCode) console.error(`    → Sunucu kodu: ${e.serverResponseCode}`);
+    if (e?.responseText) console.error(`    → Sunucu yanıtı: ${e.responseText}`);
+    if (e?.response) console.error(`    → Yanıt: ${e.response}`);
+    console.error('    İpucu: Outlook/Gmail için 2FA + "uygulama şifresi" gerekir; IMAP açık olmalı.');
+    console.error('    Not: Microsoft bazı hesaplarda şifreyle IMAP girişini (basic auth) kapatmıştır → OAuth2 gerekebilir.');
     await reader.stop();
     process.exit(1);
   }
